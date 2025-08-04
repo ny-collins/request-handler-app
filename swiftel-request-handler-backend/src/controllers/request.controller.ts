@@ -40,7 +40,7 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
 export const getMyRequests = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     try {
-        const [rows] = await pool.execute<RowDataPacket[]>(
+        const [rows] = await pool.execute(
             'SELECT id, title, description, is_monetary, amount, status, created_at FROM requests WHERE user_id = ? ORDER BY created_at DESC',
             [userId]
         );
@@ -65,7 +65,7 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
             JOIN users u ON r.user_id = u.id
             ORDER BY r.created_at DESC
         `;
-        const [rows] = await pool.execute<RowDataPacket[]>(query);
+        const [rows] = await pool.execute(query);
         res.json(rows);
     } catch (error: any) {
         console.error('Get All Requests Error:', error);
@@ -133,18 +133,18 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
     try {
         let stats;
         if (role === 'employee') {
-            const [myRequests] = await pool.execute<RowDataPacket[]>(
+            const [myRequests] = await pool.execute(
                 'SELECT status, COUNT(id) as count FROM requests WHERE user_id = ? GROUP BY status',
                 [id]
             );
             stats = {
-                totalRequests: myRequests.reduce((acc, r) => acc + r.count, 0),
-                approved: myRequests.find(r => r.status === 'approved')?.count || 0,
-                rejected: myRequests.find(r => r.status === 'rejected')?.count || 0,
-                pending: myRequests.find(r => r.status === 'pending')?.count || 0,
+                totalRequests: myRequests.reduce((acc: any, r: any) => acc + r.count, 0),
+                approved: myRequests.find((r: any) => r.status === 'approved')?.count || 0,
+                rejected: myRequests.find((r: any) => r.status === 'rejected')?.count || 0,
+                pending: myRequests.find((r: any) => r.status === 'pending')?.count || 0,
             };
         } else { // Admin or Board Member
-            const [globalStats] = await pool.execute<RowDataPacket[]>(
+            const [globalStats] = await pool.execute(
                 `SELECT
                     (SELECT COUNT(id) FROM requests) as totalRequests,
                     (SELECT COUNT(id) FROM requests WHERE status='pending') as pendingRequests,

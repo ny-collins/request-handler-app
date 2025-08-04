@@ -3,8 +3,8 @@ import { Decision, Request as DBRequest } from '../models/database';
 import { RowDataPacket, PoolConnection } from 'mysql2/promise';
 import { createNotification } from './notification.service';
 
-export const updateRequestStatus = async (requestId: number, connection: PoolConnection) => {
-    const [requestRows] = await connection.execute<RowDataPacket[]>('SELECT user_id, status, is_monetary, title FROM requests WHERE id = ?', [requestId]);
+export const updateRequestStatus = async (requestId: number, connection: any) => {
+    const [requestRows] = await connection.execute('SELECT user_id, status, is_monetary, title FROM requests WHERE id = ?', [requestId]);
     if (requestRows.length === 0) return;
 
     const request = requestRows[0] as DBRequest & { user_id: number, title: string };
@@ -16,19 +16,19 @@ export const updateRequestStatus = async (requestId: number, connection: PoolCon
 
     // Non-monetary requests are approved/rejected by the first decision
     if (!isMonetary) {
-        const [decisions] = await connection.execute<RowDataPacket[]>('SELECT decision FROM decisions WHERE request_id = ?', [requestId]);
+        const [decisions] = await connection.execute('SELECT decision FROM decisions WHERE request_id = ?', [requestId]);
         if (decisions.length > 0) {
             finalStatus = (decisions[0] as Decision).decision;
         }
     } else {
     // Monetary requests require unanimous decision from all board members
-        const [boardMembers] = await connection.execute<RowDataPacket[]>(
+        const [boardMembers] = await connection.execute(
             "SELECT COUNT(id) as count FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'board_member')"
         );
         const totalBoardMembers = boardMembers[0].count as number;
 
         if (totalBoardMembers > 0) {
-            const [decisions] = await connection.execute<RowDataPacket[]>('SELECT decision FROM decisions WHERE request_id = ?', [requestId]);
+            const [decisions] = await connection.execute('SELECT decision FROM decisions WHERE request_id = ?', [requestId]);
             const decisionCount = decisions.length;
 
             if (decisionCount === totalBoardMembers) {
@@ -69,7 +69,7 @@ export const processDecision = async (requestId: number, userId: number, decisio
             );
         } else {
             // A board member is making their own decision, check status first
-            const [request] = await connection.execute<RowDataPacket[]>('SELECT status FROM requests WHERE id = ?', [requestId]);
+            const [request] = await connection.execute('SELECT status FROM requests WHERE id = ?', [requestId]);
             if (request.length > 0 && (request[0] as DBRequest).status !== 'pending') {
                 throw new Error('This request is already finalized and cannot be changed.');
             }

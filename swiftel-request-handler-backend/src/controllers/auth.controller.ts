@@ -22,7 +22,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [employeeRole] = await connection.execute<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', ['employee']);
+        const [employeeRole] = await connection.execute('SELECT id FROM roles WHERE name = ?', ['employee']);
         if (employeeRole.length === 0) {
             console.error("Default 'employee' role not found in the database.");
             return res.status(500).json({ message: 'Server configuration error.' });
@@ -63,7 +63,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute<RowDataPacket[]>(
+        const [rows] = await connection.execute(
             'SELECT u.id, u.password, u.username, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?',
             [email]
         );

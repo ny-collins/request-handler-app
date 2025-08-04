@@ -2,13 +2,13 @@ import { pool } from '../config/database';
 import { PoolConnection } from 'mysql2/promise';
 import { Notification } from '../models/types';
 
-const getExecutor = (connection?: PoolConnection) => connection || pool;
+const getExecutor = (connection?: any) => connection || pool;
 
 /**
  * Creates a new notification for a user.
  * Can be used with a transaction connection.
  */
-export const createNotification = async (userId: number, message: string, connection?: PoolConnection): Promise<void> => {
+export const createNotification = async (userId: number, message: string, connection?: any): Promise<void> => {
   const executor = getExecutor(connection);
   await executor.execute(
     'INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, ?)',
