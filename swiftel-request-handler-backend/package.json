@@ -4,7 +4,7 @@
   "description": "Backend for the Swiftel Request Handler App",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm cache clean --force && rm -rf node_modules package-lock.json && npm install && tsc",
     "start": "NODE_ENV=production node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
