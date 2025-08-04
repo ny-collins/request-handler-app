@@ -1,6 +1,5 @@
 import { useLocation } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { useAuth } from '../../hooks/useAuth';
 import NotificationBell from './NotificationBell';
 
 type ScreenSize = 'small' | 'medium' | 'large';
@@ -18,7 +17,6 @@ const getPageTitle = (pathname: string) => {
 };
 
 const TopNavbar = ({ toggleSidebar, isSidebarOpen, screenSize }: TopNavbarProps) => {
-    const { user } = useAuth();
     const location = useLocation();
     const pageTitle = getPageTitle(location.pathname);
 

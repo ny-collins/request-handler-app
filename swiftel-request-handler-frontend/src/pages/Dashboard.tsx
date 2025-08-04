@@ -1,37 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
 import StatCard from '../components/ui/StatCard';
 import QuickRequestForm from '../components/QuickRequestForm';
-import Carousel from '../components/ui/Carousel'; // Import Carousel
-import StatCardSkeleton from '../components/ui/StatCardSkeleton'; // Import StatCardSkeleton
+import StatCardSkeleton from '../components/ui/StatCardSkeleton';
+
 import { FiArchive, FiCheckCircle, FiXCircle, FiClock, FiUsers } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import { EmployeeStats, Stats } from '../types';
-
-function getScreenSize() {
-    if (window.innerWidth < 768) return 'small';
-    return 'large';
-}
-
 const Dashboard = () => {
     const { user } = useAuth();
-    const [screenSize, setScreenSize] = useState(getScreenSize());
 
     const fetchStats = async () => {
         const { data } = await api.get('/requests/stats');
         return data;
     };
-
-    const handleResize = useCallback(() => {
-        setScreenSize(getScreenSize());
-    }, []);
-
-    useEffect(() => {
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [handleResize]);
 
     const { data: stats, error, isLoading } = useQuery<EmployeeStats & Stats, Error>({
         queryKey: ['dashboardStats'],
@@ -60,6 +43,30 @@ const Dashboard = () => {
         </>
     );
 
+    const renderStats = () => {
+        if (isLoading) {
+            return (
+                <div className="stats-grid">
+                    {[...Array(4)].map((_, index) => (
+                        <StatCardSkeleton key={index} />
+                    ))}
+                </div>
+            );
+        }
+
+        if (!stats) {
+            return <p>No dashboard statistics available.</p>;
+        }
+
+        const statCards = user?.role === 'employee' ? employeeStats : adminBoardMemberStats;
+
+        return (
+            <div className="stats-grid">
+                {statCards}
+            </div>
+        );
+    };
+
     return (
         <div>
             <div className="page-header">
@@ -67,25 +74,7 @@ const Dashboard = () => {
                 <p>Welcome back, {user?.username || 'Guest'}!</p>
             </div>
 
-            {isLoading ? (
-                <div className="stats-grid">
-                    {[...Array(4)].map((_, index) => (
-                        <StatCardSkeleton key={index} />
-                    ))}
-                </div>
-            ) : stats ? (
-                <div className="stats-grid">
-                    {screenSize === 'small' ? (
-                        <Carousel slidesToShow={1}> {/* Show one card at a time on small screens */}
-                            {user?.role === 'employee' ? employeeStats : adminBoardMemberStats}
-                        </Carousel>
-                    ) : (
-                        user?.role === 'employee' ? employeeStats : adminBoardMemberStats
-                    )}
-                </div>
-            ) : (
-                <p>No dashboard statistics available.</p>
-            )}
+            {renderStats()}
 
             {user?.role === 'employee' && (
                 <div className="dashboard-quick-request">

@@ -1220,23 +1220,45 @@ html, body {
 
 /* Dashboard Stat Card Enhancements */
 .stat-card {
-  padding: 1.5rem; /* Slightly reduced padding */
-  flex-direction: column; /* Stack icon and text vertically */
-  align-items: flex-start; /* Align content to the start */
-  gap: 0.8rem; /* Reduced gap */
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .stat-card-icon {
-  font-size: 2.5rem; /* Slightly smaller icon */
-  padding: 0.8rem; /* Reduced padding */
+  font-size: 3rem;
+  padding: 1rem;
 }
 
 .stat-card-info h3 {
-  font-size: 0.9rem; /* Smaller title */
+  font-size: 1rem;
 }
 
 .stat-card-info p {
-  font-size: 2rem; /* Slightly smaller value */
+  font-size: 2.5rem;
+}
+
+@media (max-width: 767px) {
+  .stat-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.5rem;
+  }
+
+  .stat-card-icon {
+    font-size: 2.5rem;
+    padding: 0.8rem;
+  }
+
+  .stat-card-info h3 {
+    font-size: 0.9rem;
+  }
+
+  .stat-card-info p {
+    font-size: 2rem;
+  }
 }
 
 /* Carousel Styles */
@@ -1321,8 +1343,8 @@ html, body {
   }
 
   .stats-grid {
-    /* On small screens, the Carousel component handles the layout */
-    display: block; /* Override grid display for carousel */
+    grid-template-columns: 1fr; /* Single column on small screens */
+    gap: 1rem; /* Reduced gap */
   }
 
   .form-card {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import Button from './ui/Button';
@@ -89,7 +90,7 @@ const UserItem: React.FC<UserItemProps> = ({ user }) => {
                     <div className="user-details">
                         <h3>{user.username}</h3>
                         <p className="user-email">{user.email}</p>
-                        <span className={`user-role role-${user.role}`}>{user.role.replace('_', ' ').toUpperCase()}</span>
+                        <span className={`user-role role-${user.role!}`}>{user.role!.replace('_', ' ').toUpperCase()}</span>
                     </div>
                     {currentUser?.role === 'admin' && user.role !== 'admin' && (
                         <Button onClick={handleEditClick} className="btn-sm">Edit</Button>

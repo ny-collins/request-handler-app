@@ -1,6 +1,5 @@
 import api from '../api';
 import toast from 'react-hot-toast';
-import { useAuth } from '../hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { User } from '../types';
 import UserItem from '../components/UserItem'; // Import the new UserItem component
@@ -11,7 +10,6 @@ const fetchUsers = async () => {
 };
 
 const Users = () => {
-    const { user: currentUser } = useAuth();
 
     const { data: users = [], isLoading, error } = useQuery<User[], Error>({
         queryKey: ['users'],

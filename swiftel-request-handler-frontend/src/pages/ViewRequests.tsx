@@ -117,7 +117,7 @@ const ViewRequests = () => {
             {screenSize === 'small' ? (
                 <FilterDropdown 
                     currentFilter={filter}
-                    onFilterChange={setFilter}
+                    onFilterChange={(value) => setFilter(value as StatusFilter)}
                     options={filterOptions}
                 />
             ) : (
