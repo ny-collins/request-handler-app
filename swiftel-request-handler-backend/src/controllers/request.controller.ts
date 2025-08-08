@@ -27,7 +27,7 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
 
     try {
         await pool.execute(
-            'INSERT INTO requests (created_by, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO requests (user_id, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
             [userId, title, description, type, amount || null]
         );
         res.status(201).json({ message: 'Request created successfully.' });
@@ -41,7 +41,7 @@ export const getMyRequests = async (req: AuthenticatedRequest, res: Response) =>
     const userId = req.user!.id;
     try {
         const [rows] = await pool.execute(
-            'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE user_id = ? ORDER BY created_at DESC',
             [userId]
         );
         res.json(rows as DBRequest[]);
@@ -55,8 +55,8 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
     try {
         const query = `
             SELECT 
-                r.id, r.title, r.description, r.is_monetary, r.amount, r.status, r.created_at,
-                u.name as employee_username,
+                r.id, r.title, r.description, r.type, r.amount, r.status, r.created_at,
+                u.username as employee_username,
                 (SELECT JSON_ARRAYAGG(JSON_OBJECT('board_member_id', d.board_member_id, 'username', bu.username, 'decision', d.decision))
                  FROM decisions d
                  JOIN users bu ON d.board_member_id = bu.id
@@ -134,7 +134,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
         let stats;
         if (role === 'employee') {
             const [myRequests] = await pool.execute(
-                'SELECT status, COUNT(id) as count FROM requests WHERE created_by = ? GROUP BY status',
+                'SELECT status, COUNT(id) as count FROM requests WHERE user_id = ? GROUP BY status',
                 [id]
             );
             stats = {

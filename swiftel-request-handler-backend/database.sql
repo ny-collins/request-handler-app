@@ -1,8 +1,8 @@
 -- Create new DB
-CREATE DATABASE swiftel_request_handler_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE request_handler_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Select the DB
-USE swiftel_request_handler_db;
+USE request_handler_db;
 
 -- Roles Table
 CREATE TABLE roles (
@@ -13,7 +13,7 @@ CREATE TABLE roles (
 -- Users Table
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
+  username VARCHAR(100) NOT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   role_id INT NOT NULL,
@@ -27,6 +27,7 @@ CREATE TABLE requests (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   type ENUM('monetary', 'non-monetary') NOT NULL,
+  amount DECIMAL(10, 2), 
   status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
   created_by INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -46,15 +47,15 @@ CREATE TABLE decisions (
   FOREIGN KEY (board_member_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
---Notifications Table
+-- Notifications Table
 CREATE TABLE notifications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    message VARCHAR(255) NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  message VARCHAR(255) NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- Optional: Indexes for performance
 CREATE INDEX idx_user_role ON users(role_id);
