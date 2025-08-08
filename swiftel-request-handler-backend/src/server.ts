@@ -12,17 +12,34 @@ import notificationRoutes from './routes/notification.routes'; // Import notific
 const app = express();
 
 // Middleware
-const allowedOrigins = [env.FRONTEND_URL]; // Add your production frontend URL
+const allowedOrigins = [env.FRONTEND_URL];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Log the origin for debugging
+    console.log("Incoming request from origin:", origin);
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.error(`CORS error: Origin ${origin} not allowed.`);
       callback(new Error('Not allowed by CORS'));
     }
-  }
-}));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight requests
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // API Routes
