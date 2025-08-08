@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { getErrorMessage } from '../utils/error.utils';
 
 interface RegisterForm {
-    username: string;
+    name: string;
     email: string;
     password: string;
 }
@@ -31,9 +31,9 @@ const Register = () => {
             <h2>Create an Account</h2>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="form-group">
-                    <label htmlFor="username">Username</label>
-                    <Input type="text" id="username" {...register("username", { required: "Username is required" })} />
-                    {errors.username && <p className="error-text">{errors.username.message}</p>}
+                    <label htmlFor="name">Name</label>
+                    <Input type="text" id="name" {...register("name", { required: "Name is required" })} />
+                    {errors.name && <p className="error-text">{errors.name.message}</p>}
                 </div>
                 <div className="form-group">
                     <label htmlFor="email">Email</label>
