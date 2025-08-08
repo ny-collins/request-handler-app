@@ -27,7 +27,7 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
 
     try {
         await pool.execute(
-            'INSERT INTO requests (user_id, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO requests (created_by, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
             [userId, title, description, type, amount || null]
         );
         res.status(201).json({ message: 'Request created successfully.' });
@@ -62,7 +62,7 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
                  JOIN users bu ON d.board_member_id = bu.id
                  WHERE d.request_id = r.id) as decisions
             FROM requests r
-            JOIN users u ON r.user_id = u.id
+            JOIN users u ON r.created_by = u.id
             ORDER BY r.created_at DESC
         `;
         const [rows] = await pool.execute<RowDataPacket[]>(query);
