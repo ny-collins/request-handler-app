@@ -46,7 +46,7 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Railway health check route
-app.get('/api/auth/health', (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
