@@ -63,10 +63,10 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute(
-            'SELECT u.id, u.password, u.username, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?',
-            [email]
-        );
+        const [rows] = await pool.execute(
+      'SELECT u.id, u.password, u.name, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?',
+      [email]
+    ) as RowDataPacket[][];
 
         if (rows.length === 0) {
             return res.status(401).json({ message: 'Invalid credentials.' });
