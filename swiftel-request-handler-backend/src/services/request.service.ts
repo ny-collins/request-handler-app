@@ -4,18 +4,18 @@ import { RowDataPacket, PoolConnection } from 'mysql2/promise';
 import { createNotification } from './notification.service';
 
 export const updateRequestStatus = async (requestId: number, connection: any) => {
-    const [requestRows] = await connection.execute('SELECT user_id, status, is_monetary, title FROM requests WHERE id = ?', [requestId]);
+    const [requestRows] = await connection.execute('SELECT created_by, status, type, title FROM requests WHERE id = ?', [requestId]);
     if (requestRows.length === 0) return;
 
-    const request = requestRows[0] as DBRequest & { user_id: number, title: string };
+    const request = requestRows[0] as DBRequest & { created_by: number, title: string };
     const currentStatus = request.status;
-    const isMonetary = request.is_monetary;
-    const employeeId = request.user_id;
+    const requestType = request.type;
+    const employeeId = request.created_by;
 
     let finalStatus: DBRequest['status'] = 'pending';
 
     // Non-monetary requests are approved/rejected by the first decision
-    if (!isMonetary) {
+    if (requestType !== 'monetary') {
         const [decisions] = await connection.execute('SELECT decision FROM decisions WHERE request_id = ?', [requestId]);
         if (decisions.length > 0) {
             finalStatus = (decisions[0] as Decision).decision;
