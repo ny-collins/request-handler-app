@@ -134,7 +134,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
         let stats;
         if (role === 'employee') {
             const [myRequests] = await pool.execute(
-                'SELECT status, COUNT(id) as count FROM requests WHERE user_id = ? GROUP BY status',
+                'SELECT status, COUNT(id) as count FROM requests WHERE created_by = ? GROUP BY status',
                 [id]
             );
             stats = {
