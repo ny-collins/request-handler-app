@@ -41,7 +41,7 @@ export const getMyRequests = async (req: AuthenticatedRequest, res: Response) =>
     const userId = req.user!.id;
     try {
         const [rows] = await pool.execute(
-            'SELECT id, title, description, is_monetary, amount, status, created_at FROM requests WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, is_monetary, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
             [userId]
         );
         res.json(rows as DBRequest[]);
