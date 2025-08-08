@@ -4,7 +4,7 @@ import { pool } from '../config/database';
 import { processDecision } from '../services/request.service';
 import { z } from 'zod';
 import { Request as DBRequest } from '../models/database';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket } from 'mysql2/promise';
 
 const requestSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -40,7 +40,7 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
 export const getMyRequests = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     try {
-        const [rows] = await pool.execute(
+        const [rows] = await pool.execute<RowDataPacket[]>(
             'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
             [userId]
         );
@@ -65,7 +65,7 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
             JOIN users u ON r.user_id = u.id
             ORDER BY r.created_at DESC
         `;
-        const [rows] = await pool.execute(query);
+        const [rows] = await pool.execute<RowDataPacket[]>(query);
         res.json(rows);
     } catch (error: any) {
         console.error('Get All Requests Error:', error);
@@ -133,7 +133,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
     try {
         let stats;
         if (role === 'employee') {
-            const [myRequests] = await pool.execute(
+            const [myRequests] = await pool.execute<RowDataPacket[]>(
                 'SELECT status, COUNT(id) as count FROM requests WHERE created_by = ? GROUP BY status',
                 [id]
             );
@@ -144,7 +144,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
                 pending: myRequests.find((r: any) => r.status === 'pending')?.count || 0,
             };
         } else { // Admin or Board Member
-            const [globalStats] = await pool.execute(
+            const [globalStats] = await pool.execute<RowDataPacket[]>(
                 `SELECT
                     (SELECT COUNT(id) FROM requests) as totalRequests,
                     (SELECT COUNT(id) FROM requests WHERE status='pending') as pendingRequests,
