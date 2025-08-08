@@ -22,12 +22,12 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [employeeRole] = await connection.execute<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', ['employee']);
-        if (employeeRole.length === 0) {
+        const [employeeRole] = await connection.execute('SELECT id FROM roles WHERE name = ?', ['employee']);
+        if ((employeeRole as any).length === 0) {
             console.error("Default 'employee' role not found in the database.");
             return res.status(500).json({ message: 'Server configuration error.' });
         }
-        const roleId = employeeRole[0].id;
+        const roleId = (employeeRole as any)[0].id;
 
         const hashedPassword = await hashPassword(password);
         await connection.execute(
@@ -63,12 +63,12 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute<RowDataPacket[]>(
+        const [rows] = await connection.execute(
             'SELECT u.id, u.password, u.name, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?',
             [email]
         );
 
-        if (rows.length === 0) {
+        if ((rows as any).length === 0) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
