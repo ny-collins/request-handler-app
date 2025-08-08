@@ -42,6 +42,11 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
+// Railway health check route
+app.get('/api/auth/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
