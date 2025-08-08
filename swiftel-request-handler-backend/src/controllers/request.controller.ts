@@ -41,7 +41,7 @@ export const getMyRequests = async (req: AuthenticatedRequest, res: Response) =>
     const userId = req.user!.id;
     try {
         const [rows] = await pool.execute(
-            'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
             [userId]
         );
         res.json(rows as DBRequest[]);
@@ -134,7 +134,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
         let stats;
         if (role === 'employee') {
             const [myRequests] = await pool.execute(
-                'SELECT status, COUNT(id) as count FROM requests WHERE user_id = ? GROUP BY status',
+                'SELECT status, COUNT(id) as count FROM requests WHERE created_by = ? GROUP BY status',
                 [id]
             );
             stats = {

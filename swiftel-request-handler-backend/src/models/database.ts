@@ -14,10 +14,10 @@ export interface Role {
 
 export interface Request {
     id: number;
-    user_id: number;
+    created_by: number;
     title: string;
     description: string;
-    is_monetary: boolean;
+    type: 'monetary' | 'non-monetary';
     amount: number | null;
     status: 'pending' | 'approved' | 'rejected';
     created_at: Date;

@@ -5,7 +5,7 @@ import { hashPassword, comparePassword } from '../utils/password.utils';
 import { generateToken } from '../utils/jwt.utils';
 import { User, Role } from '../models/database';
 import { z } from 'zod';
-import { RowDataPacket, FieldPacket } from 'mysql2';
+import { RowDataPacket } from 'mysql2';
 
 const registerSchema = z.object({
     username: z.string().min(3),
@@ -25,8 +25,8 @@ export const registerUser = async (req: AuthenticatedRequest, res: Response) => 
 
     const connection = await pool.getConnection();
     try {
-        const [employeeRoleRows] = await connection.execute('SELECT id FROM roles WHERE name = ?', ['employee']);
-        const employeeRole = employeeRoleRows[0] as RowDataPacket;
+        const [employeeRoleRows] = await connection.execute<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', ['employee']);
+        const employeeRole = employeeRoleRows[0];
 
         if (!employeeRole) {
             console.error("Default 'employee' role not found in the database.");
@@ -68,11 +68,11 @@ export const loginUser = async (req: AuthenticatedRequest, res: Response) => {
 
     const connection = await pool.getConnection();
     try {
-        const [userRows] = await connection.execute(
+        const [userRows] = await connection.execute<RowDataPacket[]>(
             'SELECT u.id, u.password, u.username, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?',
             [email]
         );
-        const user = userRows[0] as RowDataPacket;
+        const user = userRows[0];
 
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
