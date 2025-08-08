@@ -9,9 +9,9 @@ import { RowDataPacket } from 'mysql2';
 const requestSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().min(1, 'Description is required'),
-    is_monetary: z.boolean(),
+    type: z.enum(['monetary', 'non-monetary']),
     amount: z.number().positive().optional(),
-}).refine(data => !data.is_monetary || (data.is_monetary && data.amount !== undefined), {
+}).refine(data => data.type !== 'monetary' || (data.type === 'monetary' && data.amount !== undefined), {
     message: "A valid amount is required for monetary requests.",
     path: ["amount"],
 });
@@ -22,13 +22,13 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
         return res.status(400).json({ message: 'Invalid input', errors: validation.error.issues });
     }
 
-    const { title, description, is_monetary, amount } = validation.data;
+    const { title, description, type, amount } = validation.data;
     const userId = req.user!.id;
 
     try {
         await pool.execute(
-            'INSERT INTO requests (user_id, title, description, is_monetary, amount) VALUES (?, ?, ?, ?, ?)',
-            [userId, title, description, is_monetary, is_monetary ? amount : null]
+            'INSERT INTO requests (created_by, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
+            [userId, title, description, type, amount || null]
         );
         res.status(201).json({ message: 'Request created successfully.' });
     } catch (error: any) {
@@ -41,7 +41,7 @@ export const getMyRequests = async (req: AuthenticatedRequest, res: Response) =>
     const userId = req.user!.id;
     try {
         const [rows] = await pool.execute(
-            'SELECT id, title, description, is_monetary, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, type, amount, status, created_at FROM requests WHERE created_by = ? ORDER BY created_at DESC',
             [userId]
         );
         res.json(rows as DBRequest[]);
