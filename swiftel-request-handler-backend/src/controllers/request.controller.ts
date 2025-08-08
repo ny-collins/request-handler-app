@@ -56,7 +56,7 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
         const query = `
             SELECT 
                 r.id, r.title, r.description, r.is_monetary, r.amount, r.status, r.created_at,
-                u.username as employee_username,
+                u.name as employee_username,
                 (SELECT JSON_ARRAYAGG(JSON_OBJECT('board_member_id', d.board_member_id, 'username', bu.username, 'decision', d.decision))
                  FROM decisions d
                  JOIN users bu ON d.board_member_id = bu.id
