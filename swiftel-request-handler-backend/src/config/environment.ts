@@ -5,13 +5,11 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().positive().default(5000),
-  DB_HOST: z.string(),
-  DB_USER: z.string(),
-  DB_PASSWORD: z.string(),
-  DB_NAME: z.string(),
+  DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string().default('1h'),
   JWT_REMEMBER_ME_EXPIRES_IN: z.string().default('7d'),
+  FRONTEND_URL: z.string().url(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
