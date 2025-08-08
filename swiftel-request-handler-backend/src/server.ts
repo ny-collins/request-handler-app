@@ -24,7 +24,10 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    const trimmedOrigin = origin.trim();
+    console.log("Trimmed origin for comparison:", trimmedOrigin);
+
+    if (allowedOrigins.indexOf(trimmedOrigin) !== -1) {
       callback(null, true);
     } else {
       console.error(`CORS error: Origin ${origin} not allowed.`);
