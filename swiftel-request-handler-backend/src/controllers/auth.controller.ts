@@ -13,8 +13,10 @@ const registerSchema = z.object({
 });
 
 export const registerUser = async (req: Request, res: Response) => {
+    console.log("Attempting to register with body:", req.body);
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
+        console.error("Registration validation failed:", validation.error.issues);
         return res.status(400).json({ message: 'Invalid input', errors: validation.error.issues });
     }
 
