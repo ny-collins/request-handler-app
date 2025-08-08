@@ -58,7 +58,7 @@ export const updateUserByAdmin = async (req: AuthenticatedRequest, res: Response
 
 export const getMyAccount = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const [rows] = await pool.execute('SELECT id, username, email FROM users WHERE id = ?', [req.user!.id]);
+        const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, username, email FROM users WHERE id = ?', [req.user!.id]);
         if (rows.length === 0) return res.status(404).json({ message: "User not found" });
         res.json(rows[0] as User);
     } catch (error: any) {

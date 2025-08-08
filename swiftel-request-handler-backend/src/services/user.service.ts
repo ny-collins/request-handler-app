@@ -14,14 +14,14 @@ export const updateUserByAdmin = async (userId: number, username: string, email:
     try {
         await connection.beginTransaction();
 
-        const [targetUserRole] = await connection.execute(
+        const [targetUserRole] = await connection.execute<RowDataPacket[]>(
             'SELECT r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?',
             [userId]
         );
         if (targetUserRole.length === 0) throw new Error('User not found.');
         if ((targetUserRole[0] as any).role === 'admin') throw new Error('Cannot modify an admin account.');
 
-        const [role] = await connection.execute('SELECT id FROM roles WHERE name = ?', [roleName]);
+        const [role] = await connection.execute<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', [roleName]);
         if (role.length === 0) throw new Error('Invalid role specified.');
         const roleId = (role[0] as Role).id;
 

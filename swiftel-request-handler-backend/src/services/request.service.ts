@@ -3,7 +3,7 @@ import { Decision, Request as DBRequest } from '../models/database';
 import { RowDataPacket, PoolConnection } from 'mysql2/promise';
 import { createNotification } from './notification.service';
 
-export const updateRequestStatus = async (requestId: number, connection: any) => {
+export const updateRequestStatus = async (requestId: number, connection: PoolConnection) => {
     const [requestRows] = await connection.execute<RowDataPacket[]>('SELECT created_by, status, type, title FROM requests WHERE id = ?', [requestId]);
     if (requestRows.length === 0) return;
 
