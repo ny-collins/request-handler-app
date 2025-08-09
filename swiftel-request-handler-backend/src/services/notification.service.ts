@@ -2,6 +2,8 @@ import { pool } from '../config/database';
 import { PoolConnection } from 'mysql2/promise';
 import { Notification } from '../models/types';
 
+import { sendNotificationToClient } from '../websocket';
+
 const getExecutor = (connection?: any) => connection || pool;
 
 /**
@@ -10,10 +12,12 @@ const getExecutor = (connection?: any) => connection || pool;
  */
 export const createNotification = async (userId: number, message: string, link: string | null, connection?: any): Promise<void> => {
   const executor = getExecutor(connection);
-  await executor.execute(
+  const [result] = await executor.execute(
     'INSERT INTO notifications (user_id, message, link, is_read) VALUES (?, ?, ?, ?)',
     [userId, message, link, false]
   );
+  const [notification] = await executor.execute('SELECT * FROM notifications WHERE id = ?', [result.insertId]);
+  sendNotificationToClient(userId, notification[0]);
 };
 
 export const getNotifications = async (userId: number): Promise<Notification[]> => {

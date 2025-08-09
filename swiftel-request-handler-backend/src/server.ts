@@ -9,7 +9,11 @@ import userRoutes from './routes/user.routes';
 import requestRoutes from './routes/request.routes';
 import notificationRoutes from './routes/notification.routes'; // Import notification routes
 
+import { createServer } from 'http';
+import { createWebSocketServer } from './websocket';
+
 const app = express();
+const server = createServer(app);
 
 // Middleware
 const allowedOrigins = [env.FRONTEND_URL];
@@ -59,7 +63,10 @@ app.use('/api/notifications', notificationRoutes); // Add notification routes
 // Custom Error Handler
 app.use(errorHandler);
 
+// Create WebSocket server
+createWebSocketServer(server);
+
 const PORT = env.PORT;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
