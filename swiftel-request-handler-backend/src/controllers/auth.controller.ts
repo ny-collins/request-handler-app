@@ -7,12 +7,6 @@ import { User, Role } from '../models/database';
 import { z } from 'zod';
 import { RowDataPacket } from 'mysql2/promise';
 
-const registerSchema = z.object({
-    username: z.string().min(3),
-    email: z.string().email(),
-    password: z.string().min(6),
-});
-
 import { createNotification } from '../services/notification.service';
 
 const registerSchema = z.object({

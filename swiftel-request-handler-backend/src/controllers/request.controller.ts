@@ -6,16 +6,6 @@ import { z } from 'zod';
 import { Request as DBRequest } from '../models/database';
 import { RowDataPacket } from 'mysql2/promise';
 
-const requestSchema = z.object({
-    title: z.string().min(1, 'Title is required'),
-    description: z.string().min(1, 'Description is required'),
-    type: z.enum(['monetary', 'non-monetary']),
-    amount: z.number().positive().optional(),
-}).refine(data => data.type !== 'monetary' || (data.type === 'monetary' && data.amount !== undefined), {
-    message: "A valid amount is required for monetary requests.",
-    path: ["amount"],
-});
-
 import { createNotification } from '../services/notification.service';
 
 const requestSchema = z.object({
