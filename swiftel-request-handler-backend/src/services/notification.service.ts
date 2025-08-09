@@ -8,11 +8,11 @@ const getExecutor = (connection?: any) => connection || pool;
  * Creates a new notification for a user.
  * Can be used with a transaction connection.
  */
-export const createNotification = async (userId: number, message: string, connection?: any): Promise<void> => {
+export const createNotification = async (userId: number, message: string, link: string | null, connection?: any): Promise<void> => {
   const executor = getExecutor(connection);
   await executor.execute(
-    'INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, ?)',
-    [userId, message, false]
+    'INSERT INTO notifications (user_id, message, link, is_read) VALUES (?, ?, ?, ?)',
+    [userId, message, link, false]
   );
 };
 
@@ -34,4 +34,11 @@ export const markAsRead = async (notificationId: number): Promise<Notification> 
     [notificationId]
   );
   return (rows as Notification[])[0];
+};
+
+export const markAllAsRead = async (userId: number): Promise<void> => {
+    await pool.execute(
+        'UPDATE notifications SET is_read = TRUE WHERE user_id = ? AND is_read = FALSE',
+        [userId]
+    );
 };

@@ -13,7 +13,15 @@ const registerSchema = z.object({
     password: z.string().min(6),
 });
 
-export const registerUser = async (req: AuthenticatedRequest, res: Response) => {
+import { createNotification } from '../services/notification.service';
+
+const registerSchema = z.object({
+    username: z.string().min(3),
+    email: z.string().email(),
+    password: z.string().min(6),
+});
+
+export const registerUser = async (req: Request, res: Response) => {
     console.log("Attempting to register with body:", req.body);
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
@@ -25,6 +33,8 @@ export const registerUser = async (req: AuthenticatedRequest, res: Response) => 
 
     const connection = await pool.getConnection();
     try {
+        await connection.beginTransaction();
+
         const [employeeRoleRows] = await connection.execute<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', ['employee']);
         const employeeRole = employeeRoleRows[0];
 
@@ -40,8 +50,23 @@ export const registerUser = async (req: AuthenticatedRequest, res: Response) => 
             [username, email, hashedPassword, roleId]
         );
 
+        // Notify admins
+        const [admins] = await connection.execute<RowDataPacket[]>(
+            'SELECT id FROM users WHERE role_id = (SELECT id FROM roles WHERE name = ?)',
+            ['admin']
+        );
+
+        const message = `A new user has registered: "${username}"`;
+        const link = '/users';
+
+        for (const admin of admins) {
+            await createNotification(admin.id, message, link, connection);
+        }
+
+        await connection.commit();
         res.status(201).json({ message: 'User registered successfully.' });
     } catch (error: any) {
+        await connection.rollback();
         console.error('Registration Error:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ message: 'Username or email already exists.' });

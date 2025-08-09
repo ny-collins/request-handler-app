@@ -19,3 +19,12 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response) => {
 		res.status(500).json({ message: 'Failed to mark notification as read.' });
 	}
 };
+
+export const markAllAsRead = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        await notificationService.markAllAsRead(req.user!.id);
+        res.status(200).json({ message: 'All notifications marked as read.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to mark all notifications as read.' });
+    }
+};

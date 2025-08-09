@@ -16,6 +16,18 @@ const requestSchema = z.object({
     path: ["amount"],
 });
 
+import { createNotification } from '../services/notification.service';
+
+const requestSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().min(1, 'Description is required'),
+    type: z.enum(['monetary', 'non-monetary']),
+    amount: z.number().positive().optional(),
+}).refine(data => data.type !== 'monetary' || (data.type === 'monetary' && data.amount !== undefined), {
+    message: "A valid amount is required for monetary requests.",
+    path: ["amount"],
+});
+
 export const createRequest = async (req: AuthenticatedRequest, res: Response) => {
     const validation = requestSchema.safeParse(req.body);
     if (!validation.success) {
@@ -23,17 +35,39 @@ export const createRequest = async (req: AuthenticatedRequest, res: Response) =>
     }
 
     const { title, description, type, amount } = validation.data;
-    const userId = req.user!.id;
+    const { id: userId, username } = req.user!;
 
+    const connection = await pool.getConnection();
     try {
-        await pool.execute(
+        await connection.beginTransaction();
+
+        const [result] = await connection.execute<any>(
             'INSERT INTO requests (created_by, title, description, type, amount) VALUES (?, ?, ?, ?, ?)',
             [userId, title, description, type, amount || null]
         );
+        const requestId = result.insertId;
+
+        // Notify admins and board members
+        const [usersToNotify] = await connection.execute<RowDataPacket[]>(
+            'SELECT id FROM users WHERE role_id IN (SELECT id FROM roles WHERE name IN (?, ?))',
+            ['admin', 'board_member']
+        );
+
+        const message = `${username} submitted a new request: "${title}"`;
+        const link = `/requests`;
+
+        for (const user of usersToNotify) {
+            await createNotification(user.id, message, link, connection);
+        }
+
+        await connection.commit();
         res.status(201).json({ message: 'Request created successfully.' });
     } catch (error: any) {
+        await connection.rollback();
         console.error('Create Request Error:', error);
         res.status(500).json({ message: 'An internal error occurred while creating the request.' });
+    } finally {
+        connection.release();
     }
 };
 

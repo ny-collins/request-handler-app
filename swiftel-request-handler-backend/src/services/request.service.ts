@@ -51,7 +51,7 @@ export const updateRequestStatus = async (requestId: number, connection: PoolCon
 
         // Create a notification for the employee who made the request
         const message = `Your request "${request.title}" has been ${finalStatus}.`;
-        await createNotification(employeeId, message, connection);
+        await createNotification(employeeId, message, `/my-requests`, connection);
     }
 };
 
