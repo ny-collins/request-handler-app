@@ -6,6 +6,7 @@ import { AuthenticatedRequest } from '../models/types';
 interface JwtPayload {
     id: number;
     role: string;
+    username: string;
 }
 
 export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -14,7 +15,7 @@ export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunc
         try {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-            req.user = { id: decoded.id, role: decoded.role };
+            req.user = { id: decoded.id, role: decoded.role, username: decoded.username };
             next();
         } catch (error) {
             res.status(401).json({ message: 'Not authorized, token failed' });
