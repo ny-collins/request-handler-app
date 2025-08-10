@@ -184,3 +184,29 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
         res.status(500).json({ message: 'An internal error occurred while fetching dashboard stats.' });
     }
 };
+
+export const getRequestById = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    try {
+        const query = `
+            SELECT 
+                r.id, r.title, r.description, r.type, r.amount, r.status, r.created_at,
+                u.username as employee_username,
+                (SELECT JSON_ARRAYAGG(JSON_OBJECT('board_member_id', d.board_member_id, 'username', bu.username, 'decision', d.decision))
+                 FROM decisions d
+                 JOIN users bu ON d.board_member_id = bu.id
+                 WHERE d.request_id = r.id) as decisions
+            FROM requests r
+            JOIN users u ON r.created_by = u.id
+            WHERE r.id = ?
+        `;
+        const [rows] = await pool.execute<RowDataPacket[]>(query, [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+        res.json(rows[0]);
+    } catch (error: any) {
+        console.error('Get Request By ID Error:', error);
+        res.status(500).json({ message: 'An internal error occurred while fetching the request.' });
+    }
+};

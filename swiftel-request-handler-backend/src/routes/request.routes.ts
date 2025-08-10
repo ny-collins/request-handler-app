@@ -5,7 +5,8 @@ import {
     getAllRequests,
     makeDecision,
     adminUpdateDecision,
-    getDashboardStats
+    getDashboardStats,
+    getRequestById
 } from '../controllers/request.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
@@ -17,6 +18,7 @@ router.route('/')
 
 router.get('/my-requests', protect, authorize('employee'), getMyRequests);
 router.get('/stats', protect, getDashboardStats);
+router.get('/:id', protect, getRequestById);
 
 router.post('/:id/decide', protect, authorize('board_member', 'admin'), makeDecision);
 
