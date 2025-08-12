@@ -10,6 +10,7 @@ router.patch('/me', protect, updateMyAccount);
 router.get('/', protect, authorize('admin', 'board_member'), getAllUsers);
 router.get('/roles', protect, authorize('admin'), getRoles);
 router.patch('/:id', protect, authorize('admin'), updateUserByAdmin);
+router.delete('/:id', protect, authorize('admin'), deleteUserByAdmin);
 
 
 export default router;

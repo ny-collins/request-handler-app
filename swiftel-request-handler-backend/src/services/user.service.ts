@@ -44,3 +44,33 @@ export const getRoles = async (): Promise<Pick<Role, 'name'>[]> => {
     const [rows] = await pool.execute('SELECT name FROM roles WHERE name != "admin"');
     return rows as Pick<Role, 'name'>[];
 }
+
+export const deleteUserByAdmin = async (userId: number) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [targetUserRole] = await connection.execute<RowDataPacket[]>(
+            'SELECT r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?',
+            [userId]
+        );
+
+        if (targetUserRole.length === 0) {
+            throw new Error('User not found.');
+        }
+
+        if ((targetUserRole[0] as any).role === 'admin') {
+            throw new Error('Cannot delete an admin account.');
+        }
+
+        await connection.execute('DELETE FROM users WHERE id = ?', [userId]);
+
+        await connection.commit();
+        return { message: 'User deleted successfully.' };
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+};

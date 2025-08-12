@@ -113,3 +113,20 @@ export const updateMyAccount = async (req: AuthenticatedRequest, res: Response) 
         res.status(500).json({ message: 'An internal error occurred while updating your account.' });
     }
 };
+
+export const deleteUserByAdmin = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    try {
+        const result = await UserService.deleteUserByAdmin(Number(id));
+        res.json(result);
+    } catch (error: any) {
+        console.error('Delete User by Admin Error:', error);
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes('Cannot delete an admin')) {
+            return res.status(403).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'An internal error occurred while deleting the user.' });
+    }
+};
