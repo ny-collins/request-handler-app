@@ -210,3 +210,104 @@ export const getRequestById = async (req: AuthenticatedRequest, res: Response) =
         res.status(500).json({ message: 'An internal error occurred while fetching the request.' });
     }
 };
+
+export const updateRequest = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const validation = requestSchema.safeParse(req.body);
+    if (!validation.success) {
+        return res.status(400).json({ message: 'Invalid input', errors: validation.error.issues });
+    }
+
+    const { title, description, type, amount } = validation.data;
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [requestRows] = await connection.execute<RowDataPacket[]>('SELECT created_by, status FROM requests WHERE id = ? FOR UPDATE', [id]);
+        if (requestRows.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+
+        const request = requestRows[0] as DBRequest & { created_by: number };
+        if (request.created_by !== userId) {
+            await connection.rollback();
+            return res.status(403).json({ message: 'You are not authorized to edit this request.' });
+        }
+        if (request.status !== 'pending') {
+            await connection.rollback();
+            return res.status(403).json({ message: 'You can only edit pending requests.' });
+        }
+
+        await connection.execute(
+            'UPDATE requests SET title = ?, description = ?, type = ?, amount = ? WHERE id = ?',
+            [title, description, type, amount || null, id]
+        );
+
+        await connection.commit();
+        res.json({ message: 'Request updated successfully.' });
+    } catch (error: any) {
+        await connection.rollback();
+        console.error('Update Request Error:', error);
+        res.status(500).json({ message: 'An internal error occurred while updating the request.' });
+    } finally {
+        connection.release();
+    }
+};
+
+export const deleteRequest = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [requestRows] = await connection.execute<RowDataPacket[]>('SELECT created_by, status FROM requests WHERE id = ? FOR UPDATE', [id]);
+        if (requestRows.length === 0) {
+            await connection.rollback();
+            return res.status(204).send();
+        }
+
+        const request = requestRows[0] as DBRequest & { created_by: number };
+        if (request.created_by !== userId) {
+            await connection.rollback();
+            return res.status(403).json({ message: 'You are not authorized to delete this request.' });
+        }
+        if (request.status !== 'pending') {
+            await connection.rollback();
+            return res.status(403).json({ message: 'You can only delete pending requests.' });
+        }
+
+        await connection.execute('DELETE FROM requests WHERE id = ?', [id]);
+        await connection.commit();
+
+        res.status(204).send();
+    } catch (error: any) {
+        await connection.rollback();
+        console.error('Delete Request Error:', error);
+        res.status(500).json({ message: 'An internal error occurred while deleting the request.' });
+    } finally {
+        connection.release();
+    }
+};
+
+export const adminDeleteRequest = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await pool.execute<any>('DELETE FROM requests WHERE id = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+
+        res.status(204).send();
+    } catch (error: any) {
+        console.error('Admin Delete Request Error:', error);
+        res.status(500).json({ message: 'An internal error occurred while deleting the request.' });
+    }
+};

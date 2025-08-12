@@ -4,9 +4,11 @@ import {
     getMyRequests,
     getAllRequests,
     makeDecision,
-    adminUpdateDecision,
     getDashboardStats,
-    getRequestById
+    getRequestById,
+    updateRequest,
+    deleteRequest,
+    adminDeleteRequest
 } from '../controllers/request.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
@@ -18,10 +20,15 @@ router.route('/')
 
 router.get('/my-requests', protect, authorize('employee'), getMyRequests);
 router.get('/stats', protect, getDashboardStats);
-router.get('/:id', protect, getRequestById);
+
+router.route('/:id')
+    .get(protect, getRequestById)
+    .patch(protect, authorize('employee'), updateRequest)
+    .delete(protect, authorize('employee'), deleteRequest);
+
+router.delete('/:id/admin', protect, authorize('admin'), adminDeleteRequest);
 
 router.post('/:id/decide', protect, authorize('board_member', 'admin'), makeDecision);
 
-
-
 export default router;
+

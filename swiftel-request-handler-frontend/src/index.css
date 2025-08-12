@@ -1,0 +1,329 @@
+/* Pure CSS Styling for Swiftel Request Handler */
+
+/* 1. Design System & Variables
+---------------------------------------------------- */
+:root {
+  --font-sans: 'Inter', sans-serif;
+
+  --color-primary: #7c3aed;
+  --color-primary-dark: #5b21b6; /* Darker purple */
+  --color-primary-light: #f5f3ff; /* Lighter purple */
+
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  --color-background: var(--color-gray-50);
+  --color-text: var(--color-gray-800);
+  --color-text-secondary: var(--color-gray-500);
+  --color-border: var(--color-gray-200);
+  --color-card-background: #ffffff;
+
+  --border-radius: 0.75rem;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --transition: all 0.2s ease-in-out;
+
+  --sidebar-width-large: 260px;
+  --sidebar-width-medium: 88px; /* For collapsed state on medium screens */
+  --top-navbar-height: 70px;
+}
+
+/* 2. Base & Typography
+---------------------------------------------------- */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+/* 3. Layout & Structure
+---------------------------------------------------- */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 1.5rem; /* Default padding */
+  transition: margin-left 0.3s ease-in-out;
+  box-sizing: border-box;
+  min-width: 0; /* Allow content to shrink */
+  padding-top: calc(var(--top-navbar-height) + 1.5rem); /* Space for fixed top navbar */
+}
+
+/* Responsive Layout Adjustments */
+
+/* Large screens (>= 1024px) */
+.screen-large .main-content {
+  margin-left: var(--sidebar-width-large);
+}
+.screen-large .top-navbar {
+  display: none; /* Hide top navbar on large screens */
+}
+
+/* Medium screens (768px - 1023px) */
+.screen-medium .main-content {
+  margin-left: var(--sidebar-width-medium);
+}
+
+/* Small screens (< 768px) */
+.screen-small .main-content {
+  margin-left: 0;
+}
+
+/* Sidebar Open/Closed States */
+.sidebar-open .mobile-overlay {
+  display: block;
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999; /* Below sidebar, above main content */
+  display: none; /* Hidden by default */
+}
+
+/* 4. Components
+---------------------------------------------------- */
+
+/* Navbar */
+.navbar {
+  background-color: var(--color-card-background);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100%;
+  z-index: 1000;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+  border-right: 1px solid var(--color-border);
+  width: var(--sidebar-width-large); /* Default width for large screens */
+  left: 0; /* Default position for large screens */
+}
+
+.navbar-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  min-height: var(--top-navbar-height);
+  box-sizing: border-box;
+}
+
+.navbar-header h1 {
+  color: var(--color-primary);
+  margin: 0;
+  font-size: 1.8rem;
+  white-space: nowrap;
+}
+
+.navbar-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.navbar-links a {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 1.8rem;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  white-space: nowrap;
+  border-left: 4px solid transparent;
+}
+
+.navbar-links a:hover {
+  background-color: var(--color-background);
+  color: var(--color-primary);
+}
+
+.navbar-links a.active {
+  color: var(--color-primary);
+  font-weight: 600;
+  background-color: var(--color-background);
+  border-left-color: var(--color-primary);
+}
+
+.navbar-links a svg {
+  min-width: 24px;
+  font-size: 1.2rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-links a.active svg {
+    transform: scale(1.1);
+}
+
+.navbar-footer {
+  padding: 1.5rem;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Responsive Navbar Adjustments */
+
+/* Medium screens (768px - 1023px) */
+.screen-medium .navbar {
+  width: var(--sidebar-width-medium); /* Collapsed width */
+}
+
+.screen-medium .navbar .navbar-header h1,
+.screen-medium .navbar .navbar-links span,
+.screen-medium .navbar .navbar-footer span {
+  display: none; /* Hide labels */
+}
+
+/* Small screens (< 768px) */
+.screen-small .navbar {
+  width: var(--sidebar-width-large); /* Full width when open */
+  left: calc(-1 * var(--sidebar-width-large)); /* Hidden by default */
+}
+
+/* Sidebar Open States (for medium and small screens) */
+.sidebar-open .navbar {
+  left: 0; /* Slide in */
+}
+
+.sidebar-open.screen-medium .navbar-header h1,
+.sidebar-open.screen-medium .navbar-links span,
+.sidebar-open.screen-medium .navbar-footer span {
+  display: inline; /* Show labels when open */
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition) ease;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+  border-color: var(--color-gray-300);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-gray-300);
+}
+
+.btn-approve {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.btn-approve:hover {
+  background-color: darken(var(--color-success), 10%); /* Placeholder for darken */
+}
+
+.btn-reject {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.btn-reject:hover {
+  background-color: darken(var(--color-danger), 10%); /* Placeholder for darken */
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-sm {
+  padding: 0.7rem 1.4rem;
+  font-size: 0.9rem;
+}
+
+.btn-icon-only {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+}
