@@ -8,7 +8,8 @@ import {
     getRequestById,
     updateRequest,
     deleteRequest,
-    adminDeleteRequest
+    adminDeleteRequest,
+    adminUpdateRequest
 } from '../controllers/request.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
@@ -27,6 +28,7 @@ router.route('/:id')
     .delete(protect, authorize('employee'), deleteRequest);
 
 router.delete('/:id/admin', protect, authorize('admin'), adminDeleteRequest);
+router.patch('/:id/admin', protect, authorize('admin'), adminUpdateRequest);
 
 router.post('/:id/decide', protect, authorize('board_member', 'admin'), makeDecision);
 

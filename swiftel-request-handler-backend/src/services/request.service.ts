@@ -67,6 +67,14 @@ export const processDecision = async (requestId: number, userId: number, decisio
                 'REPLACE INTO decisions (request_id, board_member_id, decision) VALUES (?, ?, ?)',
                 [requestId, boardMemberId, decision]
             );
+
+            // Notify the board member whose decision was overridden
+            if (adminId) { // Ensure adminId is provided for notification
+                const [requestRows] = await connection.execute<RowDataPacket[]>('SELECT title FROM requests WHERE id = ?', [requestId]);
+                const requestTitle = requestRows[0]?.title || 'a request';
+                const message = `Your decision for request "${requestTitle}" was overridden by an admin. New decision: ${decision}.`;
+                await createNotification(boardMemberId, message, `/requests/${requestId}`, connection);
+            }
         } else {
             // A board member is making their own decision, check status first
             const [request] = await connection.execute<RowDataPacket[]>('SELECT status FROM requests WHERE id = ?', [requestId]);

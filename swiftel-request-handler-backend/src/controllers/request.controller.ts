@@ -116,7 +116,7 @@ export const makeDecision = async (req: AuthenticatedRequest, res: Response) => 
         const isAdmin = userRole === 'admin';
         const finalUserId = isAdmin && boardMemberId ? boardMemberId : userId;
         
-        await processDecision(requestId, finalUserId, decision, isAdmin);
+        await processDecision(requestId, finalUserId, decision, isAdmin, isAdmin ? userId : undefined);
         res.json({ message: 'Decision recorded successfully.' });
 
     } catch (error: any) {
@@ -128,28 +128,7 @@ export const makeDecision = async (req: AuthenticatedRequest, res: Response) => 
     }
 };
 
-const adminUpdateDecisionSchema = z.object({
-    requestId: z.number(),
-    boardMemberId: z.number(),
-    decision: z.enum(['approved', 'rejected'])
-});
 
-export const adminUpdateDecision = async (req: AuthenticatedRequest, res: Response) => {
-    const validation = adminUpdateDecisionSchema.safeParse(req.body);
-    if (!validation.success) {
-        return res.status(400).json({ message: 'Invalid input', errors: validation.error.issues });
-    }
-
-    const { requestId, boardMemberId, decision } = validation.data;
-    
-    try {
-        await processDecision(requestId, boardMemberId, decision, true, req.user!.id);
-        res.json({ message: 'Admin successfully updated decision.' });
-    } catch (error: any) {
-        console.error('Admin Update Decision Error:', error);
-        res.status(500).json({ message: 'An internal error occurred during the admin decision update.' });
-    }
-};
 
 export const getDashboardStats = async (req: AuthenticatedRequest, res: Response) => {
     const { id, role } = req.user!;
@@ -187,10 +166,13 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
 
 export const getRequestById = async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
+    const { id: userId, role } = req.user!;
+
     try {
         const query = `
             SELECT 
                 r.id, r.title, r.description, r.type, r.amount, r.status, r.created_at,
+                r.created_by,
                 u.username as employee_username,
                 (SELECT JSON_ARRAYAGG(JSON_OBJECT('board_member_id', d.board_member_id, 'username', bu.username, 'decision', d.decision))
                  FROM decisions d
@@ -204,7 +186,14 @@ export const getRequestById = async (req: AuthenticatedRequest, res: Response) =
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Request not found.' });
         }
-        res.json(rows[0]);
+
+        const request = rows[0] as any;
+
+        if (role === 'employee' && request.created_by !== userId) {
+            return res.status(403).json({ message: 'You are not authorized to view this request.' });
+        }
+
+        res.json(request);
     } catch (error: any) {
         console.error('Get Request By ID Error:', error);
         res.status(500).json({ message: 'An internal error occurred while fetching the request.' });
@@ -255,6 +244,34 @@ export const updateRequest = async (req: AuthenticatedRequest, res: Response) =>
         res.status(500).json({ message: 'An internal error occurred while updating the request.' });
     } finally {
         connection.release();
+    }
+};
+
+export const adminUpdateRequest = async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+
+    const validation = requestSchema.safeParse(req.body);
+    if (!validation.success) {
+        return res.status(400).json({ message: 'Invalid input', errors: validation.error.issues });
+    }
+
+    const { title, description, type, amount } = validation.data;
+
+    try {
+        const [requestRows] = await pool.execute<RowDataPacket[]>('SELECT id FROM requests WHERE id = ?', [id]);
+        if (requestRows.length === 0) {
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+
+        await pool.execute(
+            'UPDATE requests SET title = ?, description = ?, type = ?, amount = ? WHERE id = ?',
+            [title, description, type, amount || null, id]
+        );
+
+        res.json({ message: 'Request updated successfully by admin.' });
+    } catch (error: any) {
+        console.error('Admin Update Request Error:', error);
+        res.status(500).json({ message: 'An internal error occurred while updating the request.' });
     }
 };
 
