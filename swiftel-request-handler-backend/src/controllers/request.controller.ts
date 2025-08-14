@@ -77,7 +77,9 @@ export const getMyRequests = async (req: AuthenticatedRequest, res: Response) =>
 
 export const getAllRequests = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const query = `
+        const { status, type, sortBy, sortOrder } = req.query;
+
+        let query = `
             SELECT 
                 r.id, r.title, r.description, r.type, r.amount, r.status, r.created_at,
                 u.username as employee_username,
@@ -87,9 +89,36 @@ export const getAllRequests = async (req: AuthenticatedRequest, res: Response) =
                  WHERE d.request_id = r.id) as decisions
             FROM requests r
             JOIN users u ON r.created_by = u.id
-            ORDER BY r.created_at DESC
         `;
-        const [rows] = await pool.execute<RowDataPacket[]>(query);
+        
+        const whereClauses = [];
+        const queryParams = [];
+
+        if (status && typeof status === 'string') {
+            whereClauses.push('r.status = ?');
+            queryParams.push(status);
+        }
+        if (type && typeof type === 'string') {
+            whereClauses.push('r.type = ?');
+            queryParams.push(type);
+        }
+
+        if (whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+
+        const validSortBy = ['created_at', 'title', 'status'];
+        const validSortOrder = ['ASC', 'DESC'];
+        
+        let orderBy = 'ORDER BY r.created_at DESC'; // Default sort
+        if (sortBy && typeof sortBy === 'string' && validSortBy.includes(sortBy)) {
+            const order = (sortOrder && typeof sortOrder === 'string' && validSortOrder.includes(sortOrder.toUpperCase())) ? sortOrder.toUpperCase() : 'DESC';
+            orderBy = `ORDER BY r.${sortBy} ${order}`;
+        }
+        
+        query += ` ${orderBy}`;
+
+        const [rows] = await pool.execute<RowDataPacket[]>(query, queryParams);
         res.json(rows);
     } catch (error: any) {
         console.error('Get All Requests Error:', error);
